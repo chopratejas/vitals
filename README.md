@@ -31,8 +31,8 @@ TOP RECOMMENDATION
 In Claude Code, run:
 
 ```
-/plugin marketplace add https://github.com/chopratejas/vitals.git
-/plugin install vitals
+/plugin marketplace add chopratejas/vitals
+/plugin install vitals@vitals
 ```
 
 Then:

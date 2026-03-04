@@ -13,6 +13,7 @@ import argparse
 import json
 import os
 import sys
+import time
 
 # Add scripts dir to path for sibling imports
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -25,7 +26,7 @@ import db
 
 
 TOOL_NAME = "Vitals"
-VERSION = "0.1.0"
+VERSION = "0.2.0"
 
 
 def find_repo_root(start_path=None):
@@ -245,6 +246,55 @@ def run_report(args):
     # Sort by truck factor (ascending), then by total commits (descending)
     knowledge_risk.sort(key=lambda x: (x["truck_factor"], -len(x.get("authors", []))))
 
+    # --- Trend tracking ---
+    # Compare to previous snapshot if .vitals/ exists.
+    # Save a new snapshot for future comparison (once per day).
+
+    db_dir = os.path.dirname(db_path)
+    trend_data = None
+
+    if os.path.exists(db_dir):
+        prev = db.get_previous_snapshot(db_path, scope_path)
+        if prev:
+            prev_ts = prev["timestamp"]
+            days_ago = max(1, int((time.time() - prev_ts) / 86400))
+            trend_data = {
+                "previous_overall": prev["overall_health"],
+                "previous_timestamp": prev_ts,
+                "days_since": days_ago,
+                "overall_delta": round(overall - prev["overall_health"], 1),
+                "degrading": [],
+                "improving": [],
+            }
+            for fp, current_score in file_health_scores.items():
+                prev_score = prev["file_scores"].get(fp)
+                if prev_score is None:
+                    continue
+                delta = round(current_score - prev_score, 1)
+                if delta < -0.5:
+                    trend_data["degrading"].append({
+                        "file_path": fp,
+                        "previous": prev_score,
+                        "current": current_score,
+                        "delta": delta,
+                    })
+                elif delta > 0.5:
+                    trend_data["improving"].append({
+                        "file_path": fp,
+                        "previous": prev_score,
+                        "current": current_score,
+                        "delta": delta,
+                    })
+            trend_data["degrading"].sort(key=lambda x: x["delta"])
+            trend_data["improving"].sort(key=lambda x: x["delta"], reverse=True)
+
+        # Save snapshot for future comparisons (once per calendar day)
+        role_data = {fp: git_analysis.classify_file(fp) for fp in code_files}
+        db.save_snapshot(
+            db_path, overall, file_health_scores, scope_path,
+            complexity_data=complexity_data, role_data=role_data,
+        )
+
     # --- Format and output ---
 
     analysis = {
@@ -252,9 +302,10 @@ def run_report(args):
         "repo_info": repo_info,
         "file_health": file_health_scores,
         "hotspots": hotspots,
-        "coupling": coupling_data[:5],  # Top 5 coupling pairs
+        "coupling": coupling_data[:5],
         "knowledge_risk": knowledge_risk,
         "provenance": provenance_info,
+        "trends": trend_data,
         "overall_health": overall,
         "files_analyzed": len(source_files),
         "scope": scope_path,

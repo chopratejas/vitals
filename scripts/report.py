@@ -77,7 +77,7 @@ def format_health_report(analysis):
 
     # Header
     lines.append("")
-    lines.append(c("Vitals v0.1.0 — Codebase Health Report", BOLD))
+    lines.append(c("Vitals v0.2.0 — Codebase Health Report", BOLD))
     lines.append(c("═" * 50, DIM))
     lines.append("")
 
@@ -105,6 +105,12 @@ def format_health_report(analysis):
 
     lines.append(c("  " + "  |  ".join(meta_parts), DIM))
     lines.append("")
+
+    # Trends (show right after health score — most actionable signal)
+    trends = analysis.get("trends")
+    if trends:
+        lines.append(_format_trends(trends))
+        lines.append("")
 
     # Hotspots
     hotspots = analysis.get("hotspots", [])
@@ -187,6 +193,82 @@ def _format_hotspots(hotspots):
             f"{churn_str}  "
             f"{links_str}"
         )
+
+    return "\n".join(lines)
+
+
+def _format_trends(trend_data):
+    """Format the trends section showing health changes since last snapshot."""
+    lines = []
+
+    days = trend_data.get("days_since", 0)
+    prev_overall = trend_data.get("previous_overall", 0)
+    overall_delta = trend_data.get("overall_delta", 0)
+
+    # Header with time context
+    if days == 1:
+        time_label = "since yesterday"
+    elif days < 7:
+        time_label = f"since {days} days ago"
+    elif days < 30:
+        weeks = days // 7
+        time_label = f"since {weeks} week{'s' if weeks > 1 else ''} ago"
+    else:
+        months = days // 30
+        time_label = f"since {months} month{'s' if months > 1 else ''} ago"
+
+    lines.append(c(f"  TRENDS — {time_label}", BOLD + BLUE))
+    lines.append("")
+
+    # Overall delta
+    if overall_delta < 0:
+        delta_str = c(f"{overall_delta:+.1f}", RED)
+        arrow = c("↓", RED)
+    elif overall_delta > 0:
+        delta_str = c(f"{overall_delta:+.1f}", GREEN)
+        arrow = c("↑", GREEN)
+    else:
+        delta_str = c("±0.0", DIM)
+        arrow = c("→", DIM)
+
+    lines.append(
+        f"  Overall: {c(f'{prev_overall:.1f}', DIM)} {arrow} "
+        f"{c(f'{prev_overall + overall_delta:.1f}', BOLD)}  ({delta_str})"
+    )
+
+    degrading = trend_data.get("degrading", [])
+    improving = trend_data.get("improving", [])
+
+    if degrading:
+        lines.append("")
+        lines.append(c("  DEGRADING", RED))
+        for item in degrading[:5]:
+            path = _truncate_path(item["file_path"], 35)
+            prev = item["previous"]
+            curr = item["current"]
+            delta = item["delta"]
+            lines.append(
+                f"    {path:<35}  "
+                f"{prev:.1f} {c('→', RED)} {c(f'{curr:.1f}', RED)}  "
+                f"({c(f'{delta:+.1f}', RED)})"
+            )
+
+    if improving:
+        lines.append("")
+        lines.append(c("  IMPROVING", GREEN))
+        for item in improving[:5]:
+            path = _truncate_path(item["file_path"], 35)
+            prev = item["previous"]
+            curr = item["current"]
+            delta = item["delta"]
+            lines.append(
+                f"    {path:<35}  "
+                f"{prev:.1f} {c('→', GREEN)} {c(f'{curr:.1f}', GREEN)}  "
+                f"({c(f'{delta:+.1f}', GREEN)})"
+            )
+
+    if not degrading and not improving:
+        lines.append(c("  No significant changes since last scan.", DIM))
 
     return "\n".join(lines)
 

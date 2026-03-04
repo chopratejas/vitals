@@ -32,7 +32,12 @@ This gives you structured JSON with:
 - `coupling`: files that always change together
 - `knowledge_risk`: files with truck factor of 1
 - `overall_health`: codebase score (1-10)
+- `trends`: health changes since last scan (degrading/improving files, overall delta)
 - `provenance`: AI-generated code tracking data (if available)
+
+If `trends` data is present, lead with it — trends are the most actionable signal.
+Highlight files that are degrading rapidly. If the overall health dropped, explain
+the likely cause based on which files degraded.
 
 ## Phase 2: Deep Analysis — Think About ROI
 
