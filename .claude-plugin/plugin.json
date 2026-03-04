@@ -1,0 +1,16 @@
+{
+  "name": "vitals",
+  "version": "0.1.0",
+  "description": "Codebase vital signs — hotspot detection, ROI-ranked diagnosis, co-change coupling, knowledge risk, and AI provenance tracking",
+  "author": {
+    "name": "Vitals"
+  },
+  "license": "MIT",
+  "keywords": [
+    "code-health",
+    "technical-debt",
+    "hotspots",
+    "ai-code-quality",
+    "provenance"
+  ]
+}

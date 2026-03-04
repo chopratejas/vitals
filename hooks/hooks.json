@@ -1,0 +1,39 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/provenance.py\" capture",
+            "async": true,
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Review the code changes made in this conversation. For each file that was modified: (1) What was the intent — what problem was being solved? (2) Did the changes introduce any structural risk — deep nesting, large functions, tight coupling, or unclear logic? (3) Rate the session's overall impact on code health: improved, neutral, or degraded. Respond as JSON with keys: intent, files_modified (list of {path, intent, risk_assessment}), overall_impact.",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/provenance.py\" aggregate",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
