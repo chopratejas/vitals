@@ -12,7 +12,6 @@
       "name": "vitals",
       "source": "./",
       "description": "Codebase vital signs — hotspot detection, ROI-ranked diagnosis, co-change coupling, knowledge risk, trend tracking, and AI provenance",
-      "version": "0.2.0",
       "category": "code-quality",
       "tags": ["code-health", "technical-debt", "hotspots", "trends", "provenance"]
     }
