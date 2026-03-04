@@ -19,6 +19,9 @@ build/
 *.swo
 *~
 
+# MkDocs build output
+site/
+
 # OS
 .DS_Store
 Thumbs.db
