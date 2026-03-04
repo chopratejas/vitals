@@ -37,6 +37,7 @@ nav:
   - AI Provenance: provenance.md
   - Architecture: architecture.md
   - Roadmap: roadmap.md
+  - Privacy Policy: privacy.md
 
 markdown_extensions:
   - tables
