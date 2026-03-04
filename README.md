@@ -28,11 +28,14 @@ TOP RECOMMENDATION
 
 ## Install
 
-```bash
-claude --plugin-dir /path/to/vitals
+In Claude Code, run:
+
+```
+/plugin marketplace add https://github.com/chopratejas/vitals.git
+/plugin install vitals
 ```
 
-Then inside Claude Code:
+Then:
 
 ```
 /vitals:scan
